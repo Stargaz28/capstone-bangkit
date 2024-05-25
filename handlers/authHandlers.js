@@ -1,6 +1,5 @@
 const db = require('../services/db');
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
+
 
 
 
@@ -9,10 +8,9 @@ async function signup (request, h) {
     const { email, username, password } = request.payload;
     console.log(`Senders: ${username}, ${password}`);
 
-    const hashPassword = await bcrypt.hash(password, 10);
 
     try{
-        await db.query('INSERT INTO users (email, username, password) VALUES (?, ?, ?)', [email, username, hashPassword]);
+        await db.query('INSERT INTO users (email, username, password) VALUES (?, ?, ?)', [email, username, password]);
         const response = h.response({
             status: 'success',
             message: 'User Registered Successfully'
@@ -35,10 +33,7 @@ async function signin (request, h) {
     const { username , password } = request.payload;
     
     try{
-        console.log('Username, password: ', username, password);
-        
         const [rows] = await db.query('SELECT * FROM users WHERE username = ?',[username]);
-        console.log('Rows:', JSON.stringify(rows));
 
         if(rows.length === 0){
             const response = h.response({
@@ -48,12 +43,11 @@ async function signin (request, h) {
             response.code(404);
             return response;
         }
-        const userrr = rows[0];
-
-        // Check pw:
-        const isValid = await bcrypt.compare(password, userrr.password);
-        console.log(`User: ${userrr}`)
-        if(!isValid){
+        
+        //retrieve pw:
+        const pw = await db.query('SELECT password FROM users WHERE username = ?', [username]);
+        const storedPW = pw[0].password
+        if (password !== storedPW) {
             const response = h.response({
                 status: 'fail',
                 message: 'Invalid Password'
@@ -61,10 +55,7 @@ async function signin (request, h) {
             response.code(401);
             return response;
         }
-
-        const token = jwt.sign({ id: user.id, username: user.username }, process.env.JWT_SECRET, { expiresIn: '1h' });
-
-        return h.response({ status: 'success', token }).code(200);
+        return h.response({ status: 'success', message: 'Authentication successful' }).code(200);
     }
     catch(error){
         const response = h.response({
