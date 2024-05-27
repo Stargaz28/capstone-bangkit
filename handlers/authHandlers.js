@@ -1,24 +1,24 @@
 const db = require('../services/db');
+const bcrypt = require('bcrypt');
 
-
-
-
-//sign uo
-async function signup (request, h) {
+// sign up
+// authhandler.js (within signup function)
+async function signup(request, h) {
     const { email, username, password } = request.payload;
     console.log(`Senders: ${username}, ${password}`);
 
-
-    try{
-        await db.query('INSERT INTO users (email, username, password) VALUES (?, ?, ?)', [email, username, password]);
+    try {
+        const hashedPassword = await bcrypt.hash(password, 10); // Hash the password
+        const result = await db.query('INSERT INTO users (email, username, password) VALUES (?, ?, ?)', [email, username, hashedPassword]);
+        const userId = result.insertId; // Get the inserted user ID
         const response = h.response({
             status: 'success',
-            message: 'User Registered Successfully'
+            message: 'User Registered Successfully',
+            userId: userId // Include userId in the response
         });
         response.code(201);
         return response;
-    }
-    catch(error){
+    } catch (error) {
         const response = h.response({
             status: 'fail',
             message: error.message
@@ -26,16 +26,17 @@ async function signup (request, h) {
         response.code(500);
         return response;
     }
-};
+}
+
 
 // sign in
-async function signin (request, h) {
-    const { username , password } = request.payload;
-    
-    try{
-        const [rows] = await db.query('SELECT * FROM users WHERE username = ?',[username]);
+async function signin(request, h) {
+    const { username, password } = request.payload;
 
-        if(rows.length === 0){
+    try {
+        const [user] = await db.query('SELECT * FROM users WHERE username = ?', [username]);
+
+        if (!user) {
             const response = h.response({
                 status: 'fail',
                 message: 'User not found'
@@ -43,11 +44,9 @@ async function signin (request, h) {
             response.code(404);
             return response;
         }
-        
-        //retrieve pw:
-        const pw = await db.query('SELECT password FROM users WHERE username = ?', [username]);
-        const storedPW = pw[0].password
-        if (password !== storedPW) {
+
+        const isValidPassword = await bcrypt.compare(password, user.password);
+        if (!isValidPassword) {
             const response = h.response({
                 status: 'fail',
                 message: 'Invalid Password'
@@ -55,9 +54,9 @@ async function signin (request, h) {
             response.code(401);
             return response;
         }
+
         return h.response({ status: 'success', message: 'Authentication successful' }).code(200);
-    }
-    catch(error){
+    } catch (error) {
         const response = h.response({
             status: 'fail',
             message: error.message
@@ -65,7 +64,19 @@ async function signin (request, h) {
         response.code(500);
         return response;
     }
+}
+
+const getUserProfile = async (request, h) => {
+    const userId = request.params.userId; // Correct the parameter name
+    try {
+        const user = await db.getUserProfile(userId);
+        if (!user) {
+            return h.response({ status: 'fail', message: 'User not found' }).code(404);
+        }
+        return h.response(user).code(200);
+    } catch (error) {
+        return h.response({ status: 'fail', message: error.message }).code(500);
+    }
 };
 
-
-module.exports = {signin, signup}
+module.exports = { signin, signup, getUserProfile };
