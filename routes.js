@@ -1,20 +1,34 @@
-const { signin, signup, getUserProfile } = require('./handlers/authHandlers');
+const { signin, signup, signout, getUserProfile } = require('./handlers/handler');
 
 const routes = [
     {
         method: 'POST',
-        path: '/signin',
+        path:'/signin',
         handler: signin,
+        options: {
+            auth: false  // Disable authentication for this route
+        }
     },
     {
         method: 'POST',
-        path: '/signup',
+        path:'/signup',
         handler: signup,
+        options: {
+            auth: false  // Disable authentication for this route
+        }
+    },
+    {
+        method: 'POST',
+        path:'/signout',
+        handler: signout,
     },
     {
         method: 'GET',
-        path: '/profile/{userId}', // Correct the parameter name
+        path:'/profile',
         handler: getUserProfile,
+        options: {
+            auth: 'session'  // Require authentication for this route
+        }
     }
 ];
 
