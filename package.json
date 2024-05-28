@@ -1,23 +1,26 @@
 {
-  "name": "test_signinup",
+  "name": "signinandsignup",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start:dev": "nodemon server.js"
+    "start-dev": "nodemon server.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@google-cloud/firestore": "^7.7.0",
+    "@hapi/cookie": "^12.0.1",
     "@hapi/hapi": "^21.3.9",
     "bcrypt": "^5.1.1",
     "dotenv": "^16.4.5",
     "jsonwebtoken": "^9.0.2",
-    "mysql2": "^3.9.7"
+    "mysql2": "^3.9.8",
+    "nanoid": "^3.3.7"
   },
   "devDependencies": {
-    "nodemon": "^3.1.0"
+    "nodemon": "^3.1.1"
   }
 }
