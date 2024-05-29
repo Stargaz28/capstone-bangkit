@@ -1,4 +1,5 @@
 const { signin, signup, signout, getUserProfile } = require('./handlers/handler');
+const { getHistory, getHistoryDetailsId } = require('./handlers/FetchHistoryHandler');
 
 const routes = [
     {
@@ -28,6 +29,22 @@ const routes = [
         handler: getUserProfile,
         options: {
             auth: 'session'  // Require authentication for this route
+        }
+    },
+    {
+        method: 'GET',
+        path: '/history',
+        handler: getHistory,
+        options: {
+            auth: 'session'
+        }
+    },
+    {
+        method: 'GET',
+        path: '/history/{id}',
+        handler: getHistoryDetailsId,
+        options: {
+            auth: 'session'
         }
     }
 ];
